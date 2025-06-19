@@ -16,10 +16,14 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           animations: ['framer-motion'],
-          icons: ['lucide-react']
+          icons: ['lucide-react'],
+          maps: ['leaflet', 'react-leaflet']
         }
       }
     }
   },
-  base: './'
+  base: './',
+  define: {
+    global: 'globalThis'
+  }
 })

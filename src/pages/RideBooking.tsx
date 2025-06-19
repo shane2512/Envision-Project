@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Clock, Users, Star, Filter, ArrowRight, Car, Shield, Zap } from 'lucide-react'
+import { MapPin, Clock, Users, Star, Filter, ArrowRight, Car, Shield, Zap, Navigation } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import MapComponent from '../components/MapComponent'
 
 const RideBooking = () => {
   const [searchForm, setSearchForm] = useState({
@@ -12,6 +13,7 @@ const RideBooking = () => {
   })
 
   const [selectedRide, setSelectedRide] = useState<number | null>(null)
+  const [showMap, setShowMap] = useState(false)
 
   const availableRides = [
     {
@@ -30,7 +32,9 @@ const RideBooking = () => {
       verified: true,
       features: ['AC', 'Music', 'WiFi'],
       distance: '12.5 km',
-      duration: '25 mins'
+      duration: '25 mins',
+      pickup: [12.9716, 80.2594] as [number, number],
+      destination: [13.0827, 80.2707] as [number, number]
     },
     {
       id: 2,
@@ -48,7 +52,9 @@ const RideBooking = () => {
       verified: true,
       features: ['AC', 'Music'],
       distance: '15.2 km',
-      duration: '30 mins'
+      duration: '30 mins',
+      pickup: [12.9716, 80.2594] as [number, number],
+      destination: [13.0878, 80.2785] as [number, number]
     },
     {
       id: 3,
@@ -66,7 +72,9 @@ const RideBooking = () => {
       verified: true,
       features: ['AC', 'Music', 'Phone Charger'],
       distance: '10.8 km',
-      duration: '35 mins'
+      duration: '35 mins',
+      pickup: [12.9716, 80.2594] as [number, number],
+      destination: [13.0522, 80.2437] as [number, number]
     }
   ]
 
@@ -91,6 +99,8 @@ const RideBooking = () => {
     // Handle booking logic
     console.log('Booking ride:', rideId)
   }
+
+  const selectedRideData = availableRides.find(ride => ride.id === selectedRide)
 
   return (
     <div className="min-h-screen">
@@ -181,132 +191,225 @@ const RideBooking = () => {
           </form>
         </motion.div>
 
-        {/* Filters and Results Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center justify-between mb-6"
-        >
-          <div>
-            <h2 className="text-xl font-semibold text-white">Available Rides</h2>
-            <p className="text-white/60 text-sm">{availableRides.length} rides found</p>
-          </div>
-          <button className="flex items-center space-x-2 text-white/60 hover:text-white transition-colors btn-ghost">
-            <Filter className="h-4 w-4" />
-            <span>Filters</span>
-          </button>
-        </motion.div>
-
-        {/* Rides List */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="space-y-6"
-        >
-          {availableRides.map((ride, index) => (
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Rides List */}
+          <div className="lg:col-span-2">
+            {/* Filters and Results Header */}
             <motion.div
-              key={ride.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`glass-card rounded-2xl p-6 card-hover transition-all ${
-                selectedRide === ride.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''
-              }`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex items-center justify-between mb-6"
             >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-                <div className="flex items-start space-x-4">
-                  <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg">
-                    {ride.driver.charAt(0)}
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-white font-semibold text-lg">{ride.driver}</h3>
-                      {ride.verified && (
-                        <div className="flex items-center space-x-1 bg-green-500/20 px-2 py-1 rounded-full">
-                          <Shield className="w-3 h-3 text-green-400" />
-                          <span className="text-green-400 text-xs font-medium">Verified</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-white/60 text-sm mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-white">{ride.rating}</span>
-                        <span>({ride.reviews} reviews)</span>
-                      </div>
-                      <span>{ride.carModel} • {ride.carColor}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-6 mb-4">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-green-400" />
-                        <span className="text-white text-sm font-medium">{ride.from}</span>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-white/40" />
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-red-400" />
-                        <span className="text-white text-sm font-medium">{ride.to}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-6 text-white/60 text-sm mb-4">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{ride.departureTime} - {ride.arrivalTime}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4" />
-                        <span>{ride.availableSeats} seats available</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Zap className="h-4 w-4" />
-                        <span>{ride.distance} • {ride.duration}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      {ride.features.map((feature, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-white/10 rounded-full text-xs text-white/80"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-white">₹{ride.fare}</div>
-                    <div className="text-white/60 text-sm">per person</div>
-                    <div className="text-green-400 text-sm font-medium">Save ₹{Math.round(ride.fare * 0.3)}</div>
-                  </div>
-                  
-                  <button
-                    onClick={() => handleBookRide(ride.id)}
-                    className={`btn-primary px-8 py-3 ${
-                      selectedRide === ride.id ? 'bg-green-600 hover:bg-green-700' : ''
-                    }`}
-                  >
-                    {selectedRide === ride.id ? 'Selected' : 'Book Now'}
-                  </button>
-                </div>
+              <div>
+                <h2 className="text-xl font-semibold text-white">Available Rides</h2>
+                <p className="text-white/60 text-sm">{availableRides.length} rides found</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowMap(!showMap)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                    showMap ? 'bg-blue-500 text-white' : 'text-white/60 hover:text-white bg-white/10'
+                  }`}
+                >
+                  <Navigation className="h-4 w-4" />
+                  <span>Map View</span>
+                </button>
+                <button className="flex items-center space-x-2 text-white/60 hover:text-white transition-colors btn-ghost">
+                  <Filter className="h-4 w-4" />
+                  <span>Filters</span>
+                </button>
               </div>
             </motion.div>
-          ))}
-        </motion.div>
+
+            {/* Rides List */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="space-y-6"
+            >
+              {availableRides.map((ride, index) => (
+                <motion.div
+                  key={ride.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className={`glass-card rounded-2xl p-6 card-hover transition-all cursor-pointer ${
+                    selectedRide === ride.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''
+                  }`}
+                  onClick={() => setSelectedRide(ride.id)}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+                        {ride.driver.charAt(0)}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-white font-semibold">{ride.driver}</h3>
+                          {ride.verified && (
+                            <div className="flex items-center space-x-1 bg-green-500/20 px-2 py-1 rounded-full">
+                              <Shield className="w-3 h-3 text-green-400" />
+                              <span className="text-green-400 text-xs font-medium">Verified</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center space-x-4 text-white/60 text-sm mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="text-white">{ride.rating}</span>
+                            <span>({ride.reviews})</span>
+                          </div>
+                          <span>{ride.carModel} • {ride.carColor}</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-6 mb-3">
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-green-400" />
+                            <span className="text-white text-sm font-medium">{ride.from}</span>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-white/40" />
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-red-400" />
+                            <span className="text-white text-sm font-medium">{ride.to}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-6 text-white/60 text-sm mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{ride.departureTime} - {ride.arrivalTime}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Users className="h-4 w-4" />
+                            <span>{ride.availableSeats} seats</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Zap className="h-4 w-4" />
+                            <span>{ride.distance} • {ride.duration}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          {ride.features.map((feature, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-white/10 rounded-full text-xs text-white/80"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-6">
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-white">₹{ride.fare}</div>
+                        <div className="text-white/60 text-sm">per person</div>
+                        <div className="text-green-400 text-sm font-medium">Save ₹{Math.round(ride.fare * 0.3)}</div>
+                      </div>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleBookRide(ride.id)
+                        }}
+                        className={`btn-primary px-6 py-2 ${
+                          selectedRide === ride.id ? 'bg-green-600 hover:bg-green-700' : ''
+                        }`}
+                      >
+                        {selectedRide === ride.id ? 'Selected' : 'Book Now'}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Map/Details Sidebar */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="sticky top-24"
+            >
+              {showMap && selectedRideData ? (
+                <div className="glass-card rounded-2xl p-6 shadow-2xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-semibold">Route Preview</h3>
+                    <div className="text-white/60 text-sm">{selectedRideData.distance}</div>
+                  </div>
+                  <MapComponent
+                    pickup={selectedRideData.pickup}
+                    destination={selectedRideData.destination}
+                    showRoute={true}
+                    height="300px"
+                    className="rounded-xl overflow-hidden mb-4"
+                  />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-sm">Driver</span>
+                      <span className="text-white font-medium">{selectedRideData.driver}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-sm">Duration</span>
+                      <span className="text-white font-medium">{selectedRideData.duration}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-sm">Fare</span>
+                      <span className="text-white font-medium">₹{selectedRideData.fare}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="glass-card rounded-2xl p-6 shadow-2xl">
+                  <h3 className="text-white font-semibold mb-4">Quick Tips</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center mt-0.5">
+                        <Shield className="h-3 w-3 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">Verified Drivers</p>
+                        <p className="text-white/60 text-xs">All drivers are verified LICET students</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center mt-0.5">
+                        <Star className="h-3 w-3 text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">Rated Rides</p>
+                        <p className="text-white/60 text-xs">Check ratings before booking</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center mt-0.5">
+                        <Navigation className="h-3 w-3 text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">Live Tracking</p>
+                        <p className="text-white/60 text-xs">Track your ride in real-time</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </div>
 
         {/* Offer Ride Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
           className="mt-12 glass-card rounded-2xl p-8 text-center shadow-2xl"
         >
           <div className="bg-gradient-to-r from-purple-500 to-pink-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
