@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Navigation, MapPin, Car, Clock, Zap, Users } from 'lucide-react'
 
-// Dynamic import for Leaflet to avoid SSR issues
-const MapComponent: React.FC<{
+interface MapComponentProps {
   pickup?: [number, number]
   destination?: [number, number]
   currentLocation?: [number, number]
@@ -12,9 +11,11 @@ const MapComponent: React.FC<{
   className?: string
   driverLocation?: [number, number]
   waypoints?: [number, number][]
-}> = ({
-  pickup = [12.9716, 80.2594], // LICET Campus coordinates
-  destination = [13.0827, 80.2707], // T. Nagar coordinates
+}
+
+const MapComponent: React.FC<MapComponentProps> = ({
+  pickup = [12.9716, 80.2594],
+  destination = [13.0827, 80.2707],
   currentLocation,
   showRoute = true,
   height = "400px",
@@ -23,41 +24,56 @@ const MapComponent: React.FC<{
   waypoints = []
 }) => {
   const [mapLoaded, setMapLoaded] = useState(false)
-  const [MapContainer, setMapContainer] = useState<any>(null)
-  const [TileLayer, setTileLayer] = useState<any>(null)
-  const [Marker, setMarker] = useState<any>(null)
-  const [Popup, setPopup] = useState<any>(null)
-  const [Polyline, setPolyline] = useState<any>(null)
-  const [L, setL] = useState<any>(null)
+  const [mapComponents, setMapComponents] = useState<any>(null)
 
   useEffect(() => {
-    // Dynamic import to avoid SSR issues
+    let isMounted = true
+
     const loadMap = async () => {
       try {
-        const leaflet = await import('leaflet')
-        const reactLeaflet = await import('react-leaflet')
-        
-        // Fix for default markers
-        delete (leaflet.Icon.Default.prototype as any)._getIconUrl
-        leaflet.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        })
+        // Check if we're in the browser
+        if (typeof window === 'undefined') return
 
-        setL(leaflet)
-        setMapContainer(reactLeaflet.MapContainer)
-        setTileLayer(reactLeaflet.TileLayer)
-        setMarker(reactLeaflet.Marker)
-        setPopup(reactLeaflet.Popup)
-        setPolyline(reactLeaflet.Polyline)
+        const [leaflet, reactLeaflet] = await Promise.all([
+          import('leaflet'),
+          import('react-leaflet')
+        ])
+        
+        if (!isMounted) return
+
+        // Fix for default markers
+        const L = leaflet.default || leaflet
+        if (L.Icon && L.Icon.Default) {
+          delete (L.Icon.Default.prototype as any)._getIconUrl
+          L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          })
+        }
+
+        setMapComponents({
+          L,
+          MapContainer: reactLeaflet.MapContainer,
+          TileLayer: reactLeaflet.TileLayer,
+          Marker: reactLeaflet.Marker,
+          Popup: reactLeaflet.Popup,
+          Polyline: reactLeaflet.Polyline
+        })
         setMapLoaded(true)
       } catch (error) {
         console.error('Failed to load map:', error)
+        if (isMounted) {
+          setMapLoaded(false)
+        }
       }
     }
 
     loadMap()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const routeCoordinates: [number, number][] = [
@@ -74,46 +90,45 @@ const MapComponent: React.FC<{
     (pickup[1] + destination[1]) / 2
   ]
 
-  // Create custom icons using SVG images
   const createCustomIcon = (iconType: 'pickup' | 'destination' | 'car' | 'driver' | 'waypoint') => {
-    if (!L) return null
+    if (!mapComponents?.L) return null
     
     const iconConfigs = {
       pickup: {
-        iconUrl: '/markers/pickup-marker.svg',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxMiIgeT0iMTIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyAxMSAzLTMgMy0zIDMgMyAzIDMiLz4KPHN2Zz4KPC9zdmc+',
+        iconSize: [40, 40] as [number, number],
+        iconAnchor: [20, 40] as [number, number],
+        popupAnchor: [0, -40] as [number, number]
       },
       destination: {
-        iconUrl: '/markers/destination-marker.svg',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNEQzI2MjYiLz4KPHN2ZyB4PSIxMiIgeT0iMTIiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyAxMSAzLTMgMy0zIDMgMyAzIDMiLz4KPHN2Zz4KPC9zdmc+',
+        iconSize: [40, 40] as [number, number],
+        iconAnchor: [20, 40] as [number, number],
+        popupAnchor: [0, -40] as [number, number]
       },
       car: {
-        iconUrl: '/markers/car-marker.svg',
-        iconSize: [48, 48],
-        iconAnchor: [24, 24],
-        popupAnchor: [0, -24]
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMjQiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJNNSAxMmgtMmEyIDIgMCAwIDAtMiAydjZhMiAyIDAgMCAwIDIgMmgxNmEyIDIgMCAwIDAgMi0ydi02YTIgMiAwIDAgMC0yLTJoLTJsLTMtNkg4bC0zIDZ6Ii8+CjxjaXJjbGUgY3g9IjciIGN5PSIxNyIgcj0iMiIvPgo8Y2lyY2xlIGN4PSIxNyIgY3k9IjE3IiByPSIyIi8+Cjwvc3ZnPgo8L3N2Zz4=',
+        iconSize: [48, 48] as [number, number],
+        iconAnchor: [24, 24] as [number, number],
+        popupAnchor: [0, -24] as [number, number]
       },
       driver: {
-        iconUrl: '/markers/driver-marker.svg',
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -22]
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIHZpZXdCb3g9IjAgMCA0NCA0NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjIiIGN5PSIyMiIgcj0iMjIiIGZpbGw9IiM4QjVDRjYiLz4KPHN2ZyB4PSIxNCIgeT0iMTQiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz4KPC9zdmc+Cjwvc3ZnPg==',
+        iconSize: [44, 44] as [number, number],
+        iconAnchor: [22, 22] as [number, number],
+        popupAnchor: [0, -22] as [number, number]
       },
       waypoint: {
-        iconUrl: '/markers/waypoint-marker.svg',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        popupAnchor: [0, -12]
+        iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTIiIGZpbGw9IiNGNTk3MzEiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNCIgZmlsbD0id2hpdGUiLz4KPC9zdmc+',
+        iconSize: [24, 24] as [number, number],
+        iconAnchor: [12, 12] as [number, number],
+        popupAnchor: [0, -12] as [number, number]
       }
     }
 
     const config = iconConfigs[iconType]
     
-    return new L.Icon({
+    return new mapComponents.L.Icon({
       iconUrl: config.iconUrl,
       iconSize: config.iconSize,
       iconAnchor: config.iconAnchor,
@@ -122,7 +137,7 @@ const MapComponent: React.FC<{
     })
   }
 
-  if (!mapLoaded || !MapContainer) {
+  if (!mapLoaded || !mapComponents) {
     return (
       <div className={`relative ${className} flex items-center justify-center bg-slate-800/50 rounded-xl`} style={{ height }}>
         <motion.div
@@ -137,6 +152,8 @@ const MapComponent: React.FC<{
     )
   }
 
+  const { MapContainer, TileLayer, Marker, Popup, Polyline } = mapComponents
+
   return (
     <div className={`relative ${className}`} style={{ height }}>
       <MapContainer
@@ -150,7 +167,6 @@ const MapComponent: React.FC<{
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Pickup Marker */}
         <Marker position={pickup} icon={createCustomIcon('pickup')}>
           <Popup className="custom-popup">
             <div className="text-center p-3">
@@ -170,7 +186,6 @@ const MapComponent: React.FC<{
           </Popup>
         </Marker>
 
-        {/* Destination Marker */}
         <Marker position={destination} icon={createCustomIcon('destination')}>
           <Popup className="custom-popup">
             <div className="text-center p-3">
@@ -190,7 +205,6 @@ const MapComponent: React.FC<{
           </Popup>
         </Marker>
 
-        {/* Current Location (Moving Car) */}
         {currentLocation && (
           <Marker position={currentLocation} icon={createCustomIcon('car')}>
             <Popup className="custom-popup">
@@ -224,7 +238,6 @@ const MapComponent: React.FC<{
           </Marker>
         )}
 
-        {/* Driver Location (if different from current car location) */}
         {driverLocation && (
           <Marker position={driverLocation} icon={createCustomIcon('driver')}>
             <Popup className="custom-popup">
@@ -250,7 +263,6 @@ const MapComponent: React.FC<{
           </Marker>
         )}
 
-        {/* Waypoint Markers */}
         {waypoints.map((waypoint, index) => (
           <Marker key={index} position={waypoint} icon={createCustomIcon('waypoint')}>
             <Popup className="custom-popup">
@@ -262,17 +274,14 @@ const MapComponent: React.FC<{
           </Marker>
         ))}
 
-        {/* Route Polyline */}
         {showRoute && Polyline && (
           <>
-            {/* Main route line */}
             <Polyline
               positions={routeCoordinates}
               color="#3B82F6"
               weight={6}
               opacity={0.8}
             />
-            {/* Animated overlay for movement effect */}
             <Polyline
               positions={routeCoordinates}
               color="#60A5FA"
@@ -285,7 +294,6 @@ const MapComponent: React.FC<{
         )}
       </MapContainer>
 
-      {/* Map Overlay Info */}
       <div className="absolute top-4 left-4 z-20">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -300,7 +308,6 @@ const MapComponent: React.FC<{
         </motion.div>
       </div>
 
-      {/* Route Info */}
       <div className="absolute bottom-4 right-4 z-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -321,7 +328,6 @@ const MapComponent: React.FC<{
         </motion.div>
       </div>
 
-      {/* Legend */}
       <div className="absolute top-4 right-4 z-20">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

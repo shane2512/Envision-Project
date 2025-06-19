@@ -10,14 +10,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    minify: 'terser',
+    target: 'es2015',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           animations: ['framer-motion'],
-          icons: ['lucide-react'],
-          maps: ['leaflet', 'react-leaflet']
+          icons: ['lucide-react']
         }
       }
     }
@@ -27,6 +28,6 @@ export default defineConfig({
     global: 'globalThis'
   },
   optimizeDeps: {
-    include: ['leaflet', 'react-leaflet']
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react']
   }
 })
