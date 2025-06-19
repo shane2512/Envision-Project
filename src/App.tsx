@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import RideBooking from './pages/RideBooking'
 import About from './pages/About'
+import RideTracking from './pages/RideTracking'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/book-ride" element={<RideBooking />} />
           <Route path="/about" element={<About />} />
+          <Route path="/track-ride" element={<RideTracking />} />
         </Routes>
       </div>
     </Router>

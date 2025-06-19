@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, Car, User, LogOut } from 'lucide-react'
+import { Menu, X, Car, User, LogOut, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface NavbarProps {
@@ -13,8 +13,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
 
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
     { name: 'Book Ride', path: '/book-ride' },
+    { name: 'About', path: '/about' },
   ]
 
   return (
@@ -22,11 +22,14 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl shadow-lg">
               <Car className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">LICET Carpool</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-white">LICET Carpool</span>
+              <span className="text-xs text-white/60 hidden sm:block">Smart Student Transportation</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -35,9 +38,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`text-white/80 hover:text-white transition-colors duration-200 ${
-                  location.pathname === item.path ? 'text-white font-semibold' : ''
-                }`}
+                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
               >
                 {item.name}
               </Link>
@@ -45,6 +46,10 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
             
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
+                <button className="relative p-2 text-white/80 hover:text-white transition-colors">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                </button>
                 <Link
                   to="/dashboard"
                   className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
@@ -58,10 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="btn-primary"
-              >
+              <Link to="/login" className="btn-primary">
                 Login
               </Link>
             )}
@@ -71,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white p-2"
+              className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -93,13 +95,26 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn = false }) => {
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="block text-white/80 hover:text-white transition-colors"
+                  className="block text-white/80 hover:text-white transition-colors py-2"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              {!isLoggedIn && (
+              {isLoggedIn ? (
+                <div className="space-y-4 pt-4 border-t border-white/20">
+                  <Link
+                    to="/dashboard"
+                    className="block text-white/80 hover:text-white transition-colors py-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button className="block text-white/80 hover:text-white transition-colors py-2">
+                    Logout
+                  </button>
+                </div>
+              ) : (
                 <Link
                   to="/login"
                   className="block w-full text-center btn-primary"

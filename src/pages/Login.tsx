@@ -1,20 +1,24 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, Car, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Car, ArrowLeft, User, Phone } from 'lucide-react'
 import Navbar from '../components/Navbar'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false)
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    password: ''
+    phone: '',
+    password: '',
+    confirmPassword: ''
   })
   const navigate = useNavigate()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
+    // Handle login/signup logic here
     navigate('/dashboard')
   }
 
@@ -35,7 +39,7 @@ const Login = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="glass-effect rounded-3xl p-8"
+            className="glass-card rounded-3xl p-8 shadow-2xl"
           >
             {/* Header */}
             <div className="text-center mb-8">
@@ -44,16 +48,41 @@ const Login = () => {
                 Back to Home
               </Link>
               
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <Car className="h-8 w-8 text-white" />
               </div>
               
-              <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-              <p className="text-white/60">Sign in to your LICET Carpool account</p>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                {isSignUp ? 'Join LICET Carpool' : 'Welcome Back'}
+              </h2>
+              <p className="text-white/60">
+                {isSignUp ? 'Create your account to start carpooling' : 'Sign in to your LICET Carpool account'}
+              </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {isSignUp && (
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/40" />
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required={isSignUp}
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="input-field pl-10"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
                   Email Address
@@ -67,11 +96,32 @@ const Login = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Enter your email"
+                    className="input-field pl-10"
+                    placeholder="Enter your LICET email"
                   />
                 </div>
               </div>
+
+              {isSignUp && (
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-2">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/40" />
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required={isSignUp}
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="input-field pl-10"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
@@ -86,7 +136,7 @@ const Login = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="input-field pl-10 pr-12"
                     placeholder="Enter your password"
                   />
                   <button
@@ -99,34 +149,60 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
-                  />
-                  <span className="ml-2 text-sm text-white/60">Remember me</span>
-                </label>
-                <a href="#" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                  Forgot password?
-                </a>
-              </div>
+              {isSignUp && (
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/80 mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/40" />
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      required={isSignUp}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="input-field pl-10"
+                      placeholder="Confirm your password"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {!isSignUp && (
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="ml-2 text-sm text-white/60">Remember me</span>
+                  </label>
+                  <a href="#" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                    Forgot password?
+                  </a>
+                </div>
+              )}
 
               <button
                 type="submit"
-                className="w-full btn-primary py-3 text-lg"
+                className="w-full btn-primary py-4 text-lg font-semibold"
               >
-                Sign In
+                {isSignUp ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
-            {/* Footer */}
+            {/* Toggle Sign Up/Sign In */}
             <div className="mt-8 text-center">
               <p className="text-white/60">
-                Don't have an account?{' '}
-                <a href="#" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
-                  Sign up
-                </a>
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+                <button
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                >
+                  {isSignUp ? 'Sign in' : 'Sign up'}
+                </button>
               </p>
             </div>
 
@@ -142,10 +218,10 @@ const Login = () => {
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <button className="w-full inline-flex justify-center py-3 px-4 border border-white/20 rounded-xl bg-white/5 text-sm font-medium text-white/80 hover:bg-white/10 transition-colors">
+                <button className="w-full inline-flex justify-center py-3 px-4 border border-white/20 rounded-xl bg-white/5 text-sm font-medium text-white/80 hover:bg-white/10 transition-all hover:scale-105">
                   <span>Google</span>
                 </button>
-                <button className="w-full inline-flex justify-center py-3 px-4 border border-white/20 rounded-xl bg-white/5 text-sm font-medium text-white/80 hover:bg-white/10 transition-colors">
+                <button className="w-full inline-flex justify-center py-3 px-4 border border-white/20 rounded-xl bg-white/5 text-sm font-medium text-white/80 hover:bg-white/10 transition-all hover:scale-105">
                   <span>Microsoft</span>
                 </button>
               </div>

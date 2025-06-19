@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Clock, Users, Star, Filter, ArrowRight } from 'lucide-react'
+import { MapPin, Clock, Users, Star, Filter, ArrowRight, Car, Shield, Zap } from 'lucide-react'
 import Navbar from '../components/Navbar'
 
 const RideBooking = () => {
@@ -11,6 +11,8 @@ const RideBooking = () => {
     time: ''
   })
 
+  const [selectedRide, setSelectedRide] = useState<number | null>(null)
+
   const availableRides = [
     {
       id: 1,
@@ -18,13 +20,17 @@ const RideBooking = () => {
       rating: 4.8,
       reviews: 45,
       from: 'LICET Campus',
-      to: 'T. Nagar',
+      to: 'T. Nagar Metro',
       departureTime: '08:30 AM',
       arrivalTime: '09:15 AM',
       availableSeats: 3,
       fare: 45,
       carModel: 'Honda City',
-      verified: true
+      carColor: 'White',
+      verified: true,
+      features: ['AC', 'Music', 'WiFi'],
+      distance: '12.5 km',
+      duration: '25 mins'
     },
     {
       id: 2,
@@ -38,7 +44,11 @@ const RideBooking = () => {
       availableSeats: 2,
       fare: 50,
       carModel: 'Maruti Swift',
-      verified: true
+      carColor: 'Red',
+      verified: true,
+      features: ['AC', 'Music'],
+      distance: '15.2 km',
+      duration: '30 mins'
     },
     {
       id: 3,
@@ -52,17 +62,23 @@ const RideBooking = () => {
       availableSeats: 4,
       fare: 40,
       carModel: 'Hyundai i20',
-      verified: true
+      carColor: 'Blue',
+      verified: true,
+      features: ['AC', 'Music', 'Phone Charger'],
+      distance: '10.8 km',
+      duration: '35 mins'
     }
   ]
 
   const locations = [
     'LICET Campus',
-    'T. Nagar',
+    'T. Nagar Metro',
     'Anna Nagar',
     'Kodambakkam',
     'Nungambakkam',
-    'Chengalpattu'
+    'Chengalpattu',
+    'Tambaram',
+    'Velachery'
   ]
 
   const handleSearch = (e: React.FormEvent) => {
@@ -71,6 +87,7 @@ const RideBooking = () => {
   }
 
   const handleBookRide = (rideId: number) => {
+    setSelectedRide(rideId)
     // Handle booking logic
     console.log('Booking ride:', rideId)
   }
@@ -98,7 +115,7 @@ const RideBooking = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="glass-effect rounded-2xl p-6 mb-8"
+          className="glass-card rounded-2xl p-6 mb-8 shadow-2xl"
         >
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -106,7 +123,7 @@ const RideBooking = () => {
               <select
                 value={searchForm.from}
                 onChange={(e) => setSearchForm({...searchForm, from: e.target.value})}
-                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="">Select pickup</option>
                 {locations.map((location) => (
@@ -122,7 +139,7 @@ const RideBooking = () => {
               <select
                 value={searchForm.to}
                 onChange={(e) => setSearchForm({...searchForm, to: e.target.value})}
-                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="">Select destination</option>
                 {locations.map((location) => (
@@ -139,7 +156,7 @@ const RideBooking = () => {
                 type="date"
                 value={searchForm.date}
                 onChange={(e) => setSearchForm({...searchForm, date: e.target.value})}
-                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               />
             </div>
 
@@ -149,7 +166,7 @@ const RideBooking = () => {
                 type="time"
                 value={searchForm.time}
                 onChange={(e) => setSearchForm({...searchForm, time: e.target.value})}
-                className="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               />
             </div>
 
@@ -164,15 +181,18 @@ const RideBooking = () => {
           </form>
         </motion.div>
 
-        {/* Filters */}
+        {/* Filters and Results Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="flex items-center justify-between mb-6"
         >
-          <h2 className="text-xl font-semibold text-white">Available Rides</h2>
-          <button className="flex items-center space-x-2 text-white/60 hover:text-white transition-colors">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Available Rides</h2>
+            <p className="text-white/60 text-sm">{availableRides.length} rides found</p>
+          </div>
+          <button className="flex items-center space-x-2 text-white/60 hover:text-white transition-colors btn-ghost">
             <Filter className="h-4 w-4" />
             <span>Filters</span>
           </button>
@@ -183,7 +203,7 @@ const RideBooking = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="space-y-4"
+          className="space-y-6"
         >
           {availableRides.map((ride, index) => (
             <motion.div
@@ -191,20 +211,23 @@ const RideBooking = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="glass-effect rounded-2xl p-6 card-hover"
+              className={`glass-card rounded-2xl p-6 card-hover transition-all ${
+                selectedRide === ride.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''
+              }`}
             >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                  <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg">
                     {ride.driver.charAt(0)}
                   </div>
                   
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-white font-semibold">{ride.driver}</h3>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-white font-semibold text-lg">{ride.driver}</h3>
                       {ride.verified && (
-                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <div className="flex items-center space-x-1 bg-green-500/20 px-2 py-1 rounded-full">
+                          <Shield className="w-3 h-3 text-green-400" />
+                          <span className="text-green-400 text-xs font-medium">Verified</span>
                         </div>
                       )}
                     </div>
@@ -212,25 +235,25 @@ const RideBooking = () => {
                     <div className="flex items-center space-x-4 text-white/60 text-sm mb-3">
                       <div className="flex items-center space-x-1">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span>{ride.rating}</span>
+                        <span className="text-white">{ride.rating}</span>
                         <span>({ride.reviews} reviews)</span>
                       </div>
-                      <span>{ride.carModel}</span>
+                      <span>{ride.carModel} • {ride.carColor}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-6 mb-4">
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4 text-green-400" />
-                        <span className="text-white text-sm">{ride.from}</span>
+                        <span className="text-white text-sm font-medium">{ride.from}</span>
                       </div>
                       <ArrowRight className="h-4 w-4 text-white/40" />
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4 text-red-400" />
-                        <span className="text-white text-sm">{ride.to}</span>
+                        <span className="text-white text-sm font-medium">{ride.to}</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-6 mt-2 text-white/60 text-sm">
+                    <div className="flex items-center space-x-6 text-white/60 text-sm mb-4">
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4" />
                         <span>{ride.departureTime} - {ride.arrivalTime}</span>
@@ -239,21 +262,39 @@ const RideBooking = () => {
                         <Users className="h-4 w-4" />
                         <span>{ride.availableSeats} seats available</span>
                       </div>
+                      <div className="flex items-center space-x-1">
+                        <Zap className="h-4 w-4" />
+                        <span>{ride.distance} • {ride.duration}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {ride.features.map((feature, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-white/10 rounded-full text-xs text-white/80"
+                        >
+                          {feature}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-6">
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">₹{ride.fare}</div>
+                    <div className="text-3xl font-bold text-white">₹{ride.fare}</div>
                     <div className="text-white/60 text-sm">per person</div>
+                    <div className="text-green-400 text-sm font-medium">Save ₹{Math.round(ride.fare * 0.3)}</div>
                   </div>
                   
                   <button
                     onClick={() => handleBookRide(ride.id)}
-                    className="btn-primary"
+                    className={`btn-primary px-8 py-3 ${
+                      selectedRide === ride.id ? 'bg-green-600 hover:bg-green-700' : ''
+                    }`}
                   >
-                    Book Now
+                    {selectedRide === ride.id ? 'Selected' : 'Book Now'}
                   </button>
                 </div>
               </div>
@@ -266,17 +307,25 @@ const RideBooking = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12 glass-effect rounded-2xl p-8 text-center"
+          className="mt-12 glass-card rounded-2xl p-8 text-center shadow-2xl"
         >
+          <div className="bg-gradient-to-r from-purple-500 to-pink-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <Car className="h-8 w-8 text-white" />
+          </div>
           <h3 className="text-2xl font-bold text-white mb-4">
             Don't see a ride that fits your schedule?
           </h3>
-          <p className="text-white/60 mb-6">
-            Offer your own ride and help fellow students while earning money
+          <p className="text-white/60 mb-6 max-w-2xl mx-auto">
+            Offer your own ride and help fellow students while earning money. It's easy, safe, and rewarding!
           </p>
-          <button className="btn-primary">
-            Offer a Ride
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="btn-primary">
+              Offer a Ride
+            </button>
+            <button className="btn-secondary">
+              Learn More
+            </button>
+          </div>
         </motion.div>
       </div>
     </div>
