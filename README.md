@@ -19,7 +19,7 @@ A modern, responsive web application for student carpooling at LICET (Loyola ICA
 - **Icons**: Lucide React
 - **Routing**: React Router DOM
 - **Build Tool**: Vite
-- **Deployment**: Vercel
+- **Deployment**: Netlify
 
 ## Getting Started
 
@@ -62,13 +62,16 @@ npm run preview
 
 ## Deployment
 
-This project is optimized for deployment on Vercel:
+This project is deployed on Netlify and can be accessed at:
+**[https://fastidious-medovik-d2f950.netlify.app](https://fastidious-medovik-d2f950.netlify.app)**
 
-1. Connect your GitHub repository to Vercel
-2. Vercel will automatically detect the Vite framework
+### Deploy to Netlify
+
+1. Connect your GitHub repository to Netlify
+2. Netlify will automatically detect the Vite framework
 3. Deploy with zero configuration needed
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/licet-carpool)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/your-username/licet-carpool)
 
 ## Project Structure
 
@@ -160,7 +163,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions or support, please contact:
 - Email: contact@licetcarpool.com
-- Website: [LICET Carpool]([https://fastidious-medovik-d2f950.netlify.app])
+- Website: [LICET Carpool](https://fastidious-medovik-d2f950.netlify.app)
 
 ---
 
