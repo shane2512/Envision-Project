@@ -7,6 +7,7 @@ import MapComponent from '../components/MapComponent'
 const RideTracking = () => {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [currentLocation, setCurrentLocation] = useState<[number, number]>([12.9750, 80.2650])
+  const [driverLocation, setDriverLocation] = useState<[number, number]>([12.9800, 80.2680])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -16,16 +17,35 @@ const RideTracking = () => {
     return () => clearInterval(timer)
   }, [])
 
-  // Simulate car movement
+  // Simulate car movement towards destination
   useEffect(() => {
     const moveInterval = setInterval(() => {
-      setCurrentLocation(prev => [
-        prev[0] + (Math.random() - 0.5) * 0.001,
-        prev[1] + (Math.random() - 0.5) * 0.001
-      ])
+      setCurrentLocation(prev => {
+        const targetLat = 13.0827
+        const targetLng = 80.2707
+        const stepLat = (targetLat - prev[0]) * 0.02
+        const stepLng = (targetLng - prev[1]) * 0.02
+        
+        return [
+          prev[0] + stepLat + (Math.random() - 0.5) * 0.0005,
+          prev[1] + stepLng + (Math.random() - 0.5) * 0.0005
+        ]
+      })
     }, 3000)
 
     return () => clearInterval(moveInterval)
+  }, [])
+
+  // Simulate driver location updates
+  useEffect(() => {
+    const driverMoveInterval = setInterval(() => {
+      setDriverLocation(prev => [
+        prev[0] + (Math.random() - 0.5) * 0.0008,
+        prev[1] + (Math.random() - 0.5) * 0.0008
+      ])
+    }, 5000)
+
+    return () => clearInterval(driverMoveInterval)
   }, [])
 
   const rideDetails = {
@@ -56,6 +76,12 @@ const RideTracking = () => {
     { status: 'Driver Arrived', time: 'ETA 3 mins', completed: false },
     { status: 'Trip Started', time: 'Pending', completed: false },
     { status: 'Trip Completed', time: 'Pending', completed: false }
+  ]
+
+  const waypoints: [number, number][] = [
+    [12.9800, 80.2680],
+    [13.0200, 80.2700],
+    [13.0500, 80.2705]
   ]
 
   return (
@@ -96,6 +122,8 @@ const RideTracking = () => {
                 pickup={[12.9716, 80.2594]}
                 destination={[13.0827, 80.2707]}
                 currentLocation={currentLocation}
+                driverLocation={driverLocation}
+                waypoints={waypoints}
                 showRoute={true}
                 height="500px"
                 className="rounded-xl overflow-hidden"

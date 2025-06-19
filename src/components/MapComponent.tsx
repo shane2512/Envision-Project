@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Navigation, MapPin, Car, Clock, Zap } from 'lucide-react'
+import { Navigation, MapPin, Car, Clock, Zap, Users } from 'lucide-react'
 
 // Dynamic import for Leaflet to avoid SSR issues
 const MapComponent: React.FC<{
@@ -10,13 +10,17 @@ const MapComponent: React.FC<{
   showRoute?: boolean
   height?: string
   className?: string
+  driverLocation?: [number, number]
+  waypoints?: [number, number][]
 }> = ({
   pickup = [12.9716, 80.2594], // LICET Campus coordinates
   destination = [13.0827, 80.2707], // T. Nagar coordinates
   currentLocation,
   showRoute = true,
   height = "400px",
-  className = ""
+  className = "",
+  driverLocation,
+  waypoints = []
 }) => {
   const [mapLoaded, setMapLoaded] = useState(false)
   const [MapContainer, setMapContainer] = useState<any>(null)
@@ -70,21 +74,51 @@ const MapComponent: React.FC<{
     (pickup[1] + destination[1]) / 2
   ]
 
-  // Create custom icons
-  const createIcon = (color: string, iconType: 'pickup' | 'destination' | 'car') => {
+  // Create custom icons using SVG images
+  const createCustomIcon = (iconType: 'pickup' | 'destination' | 'car' | 'driver' | 'waypoint') => {
     if (!L) return null
     
-    const iconSvg = iconType === 'pickup' 
-      ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M12 2C8.13 2 5 5.13 5 9C5 10.74 5.5 12.37 6.61 13.74L12 22L17.39 13.74C18.5 12.37 19 10.74 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"/></svg>`
-      : iconType === 'destination'
-      ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M12 2C8.13 2 5 5.13 5 9C5 10.74 5.5 12.37 6.61 13.74L12 22L17.39 13.74C18.5 12.37 19 10.74 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"/></svg>`
-      : `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.28 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.5 16C5.67 16 5 15.33 5 14.5S5.67 13 6.5 13S7.5 13.67 7.5 14.5S6.83 16 6.5 16ZM17.5 16C16.67 16 16 15.33 16 14.5S16.67 13 17.5 13S19 13.67 19 14.5S18.33 16 17.5 16ZM5.81 12L7.5 7H16.5L18.19 12H5.81Z"/></svg>`
+    const iconConfigs = {
+      pickup: {
+        iconUrl: '/markers/pickup-marker.svg',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+      },
+      destination: {
+        iconUrl: '/markers/destination-marker.svg',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+      },
+      car: {
+        iconUrl: '/markers/car-marker.svg',
+        iconSize: [48, 48],
+        iconAnchor: [24, 24],
+        popupAnchor: [0, -24]
+      },
+      driver: {
+        iconUrl: '/markers/driver-marker.svg',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+        popupAnchor: [0, -22]
+      },
+      waypoint: {
+        iconUrl: '/markers/waypoint-marker.svg',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -12]
+      }
+    }
 
+    const config = iconConfigs[iconType]
+    
     return new L.Icon({
-      iconUrl: `data:image/svg+xml;base64,${btoa(iconSvg)}`,
-      iconSize: iconType === 'car' ? [28, 28] : [32, 32],
-      iconAnchor: iconType === 'car' ? [14, 14] : [16, 32],
-      popupAnchor: iconType === 'car' ? [0, -14] : [0, -32]
+      iconUrl: config.iconUrl,
+      iconSize: config.iconSize,
+      iconAnchor: config.iconAnchor,
+      popupAnchor: config.popupAnchor,
+      className: `custom-marker-${iconType}`
     })
   }
 
@@ -97,7 +131,7 @@ const MapComponent: React.FC<{
           className="text-center"
         >
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/60">Loading map...</p>
+          <p className="text-white/60">Loading interactive map...</p>
         </motion.div>
       </div>
     )
@@ -117,56 +151,137 @@ const MapComponent: React.FC<{
         />
         
         {/* Pickup Marker */}
-        <Marker position={pickup} icon={createIcon('#10B981', 'pickup')}>
-          <Popup>
-            <div className="text-center p-2">
-              <div className="flex items-center space-x-2 mb-2">
-                <MapPin className="h-4 w-4 text-green-500" />
-                <span className="font-semibold">Pickup Point</span>
+        <Marker position={pickup} icon={createCustomIcon('pickup')}>
+          <Popup className="custom-popup">
+            <div className="text-center p-3">
+              <div className="flex items-center justify-center space-x-2 mb-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <MapPin className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-bold text-lg text-gray-800">Pickup Point</span>
               </div>
-              <p className="text-sm text-gray-600">LICET Campus Gate</p>
+              <p className="text-gray-600 font-medium">LICET Campus Gate</p>
+              <p className="text-sm text-gray-500 mt-1">Main entrance near security</p>
+              <div className="mt-3 flex items-center justify-center space-x-2 text-sm">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-600">Departure: 8:30 AM</span>
+              </div>
             </div>
           </Popup>
         </Marker>
 
         {/* Destination Marker */}
-        <Marker position={destination} icon={createIcon('#EF4444', 'destination')}>
-          <Popup>
-            <div className="text-center p-2">
-              <div className="flex items-center space-x-2 mb-2">
-                <MapPin className="h-4 w-4 text-red-500" />
-                <span className="font-semibold">Destination</span>
+        <Marker position={destination} icon={createCustomIcon('destination')}>
+          <Popup className="custom-popup">
+            <div className="text-center p-3">
+              <div className="flex items-center justify-center space-x-2 mb-3">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                  <MapPin className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-bold text-lg text-gray-800">Destination</span>
               </div>
-              <p className="text-sm text-gray-600">T. Nagar Metro Station</p>
+              <p className="text-gray-600 font-medium">T. Nagar Metro Station</p>
+              <p className="text-sm text-gray-500 mt-1">Platform entrance A</p>
+              <div className="mt-3 flex items-center justify-center space-x-2 text-sm">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-600">Arrival: 9:15 AM</span>
+              </div>
             </div>
           </Popup>
         </Marker>
 
-        {/* Current Location (Car) */}
+        {/* Current Location (Moving Car) */}
         {currentLocation && (
-          <Marker position={currentLocation} icon={createIcon('#3B82F6', 'car')}>
-            <Popup>
-              <div className="text-center p-2">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Car className="h-4 w-4 text-blue-500" />
-                  <span className="font-semibold">Your Ride</span>
+          <Marker position={currentLocation} icon={createCustomIcon('car')}>
+            <Popup className="custom-popup">
+              <div className="text-center p-3">
+                <div className="flex items-center justify-center space-x-2 mb-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                    <Car className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-bold text-lg text-gray-800">Your Ride</span>
                 </div>
-                <p className="text-sm text-gray-600">Driver: Rahul Kumar</p>
-                <p className="text-sm text-gray-600">ETA: 3 minutes</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Driver:</span>
+                    <span className="font-medium text-gray-800">Rahul Kumar</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Car:</span>
+                    <span className="font-medium text-gray-800">Honda City</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">ETA:</span>
+                    <span className="font-bold text-green-600">3 minutes</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-center space-x-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-green-600 font-medium">Live tracking</span>
+                </div>
               </div>
             </Popup>
           </Marker>
         )}
 
+        {/* Driver Location (if different from current car location) */}
+        {driverLocation && (
+          <Marker position={driverLocation} icon={createCustomIcon('driver')}>
+            <Popup className="custom-popup">
+              <div className="text-center p-3">
+                <div className="flex items-center justify-center space-x-2 mb-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Users className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-bold text-lg text-gray-800">Driver Location</span>
+                </div>
+                <p className="text-gray-600 font-medium">Rahul Kumar</p>
+                <p className="text-sm text-gray-500 mt-1">Verified LICET Student</p>
+                <div className="mt-3 flex items-center justify-center space-x-2">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-yellow-400 rounded-full"></div>
+                    <span className="text-sm text-gray-600">4.8 ★</span>
+                  </div>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-sm text-gray-600">45 rides</span>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* Waypoint Markers */}
+        {waypoints.map((waypoint, index) => (
+          <Marker key={index} position={waypoint} icon={createCustomIcon('waypoint')}>
+            <Popup className="custom-popup">
+              <div className="text-center p-2">
+                <span className="font-medium text-gray-800">Waypoint {index + 1}</span>
+                <p className="text-sm text-gray-500">Route checkpoint</p>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
         {/* Route Polyline */}
         {showRoute && Polyline && (
-          <Polyline
-            positions={routeCoordinates}
-            color="#3B82F6"
-            weight={4}
-            opacity={0.8}
-            dashArray="10, 10"
-          />
+          <>
+            {/* Main route line */}
+            <Polyline
+              positions={routeCoordinates}
+              color="#3B82F6"
+              weight={6}
+              opacity={0.8}
+            />
+            {/* Animated overlay for movement effect */}
+            <Polyline
+              positions={routeCoordinates}
+              color="#60A5FA"
+              weight={3}
+              opacity={0.6}
+              dashArray="10, 15"
+              className="animate-pulse"
+            />
+          </>
         )}
       </MapContainer>
 
@@ -178,8 +293,9 @@ const MapComponent: React.FC<{
           className="glass-card rounded-xl p-3 shadow-lg"
         >
           <div className="flex items-center space-x-2 text-white text-sm">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
             <Navigation className="h-4 w-4 text-blue-400" />
-            <span>Live Tracking</span>
+            <span>Live Tracking Active</span>
           </div>
         </motion.div>
       </div>
@@ -201,6 +317,33 @@ const MapComponent: React.FC<{
               <Zap className="h-4 w-4 text-blue-400" />
               <span>12.5 km</span>
             </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Legend */}
+      <div className="absolute top-4 right-4 z-20">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card rounded-xl p-3 shadow-lg"
+        >
+          <div className="space-y-2 text-xs text-white">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+              <span>Pickup</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+              <span>Drop-off</span>
+            </div>
+            {currentLocation && (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                <span>Live Car</span>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

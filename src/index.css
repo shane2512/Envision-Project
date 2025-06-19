@@ -110,15 +110,22 @@
 }
 
 .leaflet-popup-content-wrapper {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(10px) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .leaflet-popup-tip {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .leaflet-control-zoom a {
@@ -127,22 +134,63 @@
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
   border-radius: 8px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
 }
 
 .leaflet-control-zoom a:hover {
   background: rgba(255, 255, 255, 0.2) !important;
   color: white !important;
+  transform: scale(1.05);
 }
 
 .leaflet-control-attribution {
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
   color: white !important;
   border-radius: 8px !important;
   backdrop-filter: blur(10px) !important;
+  font-size: 10px !important;
 }
 
 .leaflet-control-attribution a {
   color: #60a5fa !important;
+}
+
+/* Custom marker animations */
+.custom-marker-car {
+  animation: bounce 2s infinite;
+}
+
+.custom-marker-pickup {
+  animation: pulse 2s infinite;
+}
+
+.custom-marker-destination {
+  animation: pulse 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Hide leaflet attribution on small screens */
@@ -150,4 +198,26 @@
   .leaflet-control-attribution {
     display: none !important;
   }
+  
+  .leaflet-popup-content-wrapper {
+    max-width: 280px !important;
+  }
+}
+
+/* Custom popup styling */
+.custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Route animation */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+.animated-route {
+  stroke-dasharray: 20;
+  animation: dash 20s linear infinite;
 }
