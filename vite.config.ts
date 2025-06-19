@@ -25,5 +25,8 @@ export default defineConfig({
   base: './',
   define: {
     global: 'globalThis'
+  },
+  optimizeDeps: {
+    include: ['leaflet', 'react-leaflet']
   }
 })
