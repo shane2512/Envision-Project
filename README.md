@@ -160,7 +160,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions or support, please contact:
 - Email: contact@licetcarpool.com
-- Website: [LICET Carpool](https://licetcarpool.vercel.app)
+- Website: [LICET Carpool]([https://licetcarpool.vercel.app](https://fastidious-medovik-d2f950.netlify.app/))
 
 ---
 
